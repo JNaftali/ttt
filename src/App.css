@@ -1,3 +1,19 @@
+.react-aria-Slider {
+  margin: 1em;
+}
+
+.react-aria-SliderTrack {
+  width: 500px;
+  border: 2px solid black;
+}
+
+.react-aria-SliderThumb {
+  border-radius: 100vw;
+  height: 1em;
+  width: 1em;
+  background: green;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;

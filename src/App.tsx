@@ -1,35 +1,83 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import {
+  Label,
+  Slider,
+  SliderOutput,
+  SliderThumb,
+  SliderTrack,
+} from "react-aria-components";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [eventValues, setEventValues] = useState<Record<string, number>>({});
+  
+  const balances = ["eq", "bal", "pill", "salve", "pipe"];
+  const events = [
+    {
+      name: "cast windlance",
+      req: ["eq", "bal"],
+      consumes: ["eq"],
+      duration: 1.5,
+    },
+  ];
+
+  const handleSliderChange = (balance: string, newValues: number[]) => {
+    const relevantEvents = events.filter(event => event.req.includes(balance));
+    
+    setEventValues(prev => {
+      const updated = { ...prev };
+      relevantEvents.forEach((event, index) => {
+        updated[event.name] = newValues[index];
+      });
+      return updated;
+    });
+  };
 
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        {balances.map((balance) => {
+          const relevantEvents = events.filter(event => event.req.includes(balance));
+          const consumingEvents = events.filter(event => event.consumes.includes(balance));
+          
+          const currentValues = relevantEvents.map(event => eventValues[event.name] || 0);
+          const consumptionValues = consumingEvents.map(event => (eventValues[event.name] || 0) + event.duration);
+          
+          // Combine both requirement and consumption values for the slider
+          const allValues = [...currentValues, ...consumptionValues];
+          
+          return (
+            <Slider 
+              key={balance} 
+              minValue={0} 
+              maxValue={5} 
+              step={0.01} 
+              value={allValues}
+              onChange={(newValues) => handleSliderChange(balance, newValues.slice(0, currentValues.length))}
+            >
+              <Label>{balance}</Label>
+              <SliderOutput />
+              <SliderTrack>
+                {relevantEvents.map((event, index) => (
+                  <SliderThumb 
+                    key={`req-${event.name}`}
+                    index={index}
+                  />
+                ))}
+                {consumingEvents.map((event, index) => (
+                  <SliderThumb 
+                    key={`consume-${event.name}`}
+                    index={currentValues.length + index}
+                    style={{ opacity: 0.6, backgroundColor: 'red' }}
+                  />
+                ))}
+              </SliderTrack>
+            </Slider>
+          );
+        })}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
