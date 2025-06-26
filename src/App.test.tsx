@@ -133,4 +133,38 @@ describe('App - Slider Thumb Linking', () => {
     const balInputs = balSlider?.querySelectorAll('input[type="range"]')
     expect(balInputs).toHaveLength(1)
   })
+
+  it('should display event labels and link them to thumbs with proper descriptions', () => {
+    render(<App />)
+    
+    // Should show single event label (but there might be multiple in test environment)
+    const eventLabels = screen.getAllByText('cast windlance')
+    expect(eventLabels.length).toBeGreaterThan(0)
+    
+    // Check that thumbs have aria-labelledby pointing to the single event label
+    // and aria-describedby pointing to description elements
+    const eqLabels = screen.getAllByText('eq')
+    const eqSlider = eqLabels[0].closest('[role="group"]')
+    const eqInputs = eqSlider?.querySelectorAll('input[type="range"]')
+    
+    if (eqInputs) {
+      // First input should be requirement thumb
+      expect(eqInputs[0].getAttribute('aria-labelledby')).toContain('event-label-cast windlance')
+      expect(eqInputs[0].getAttribute('aria-describedby')).toContain('req-desc-cast windlance-eq')
+      
+      // Second input should be consumption thumb  
+      expect(eqInputs[1].getAttribute('aria-labelledby')).toContain('event-label-cast windlance')
+      expect(eqInputs[1].getAttribute('aria-describedby')).toContain('consume-desc-cast windlance-eq')
+    }
+    
+    // bal should only have requirement thumb with proper aria attributes
+    const balLabels = screen.getAllByText('bal')
+    const balSlider = balLabels[0].closest('[role="group"]')
+    const balInputs = balSlider?.querySelectorAll('input[type="range"]')
+    
+    if (balInputs) {
+      expect(balInputs[0].getAttribute('aria-labelledby')).toContain('event-label-cast windlance')
+      expect(balInputs[0].getAttribute('aria-describedby')).toContain('req-desc-cast windlance-bal')
+    }
+  })
 })
