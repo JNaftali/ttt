@@ -8,6 +8,15 @@
   position: relative;
 }
 
+.react-aria-Checkbox::before {
+  content: "❌";
+  display: inline-block;
+}
+
+.react-aria-Checkbox[data-selected]::before {
+  content: "✅";
+}
+
 .thumb-container {
   position: relative;
 }
