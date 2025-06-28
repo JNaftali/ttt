@@ -6,6 +6,11 @@ import {
   SliderThumb,
   SliderTrack,
 } from "react-aria-components";
+import {
+  getNextValidPosition,
+  getConsumptionPeriods,
+  isValidEventPlacement
+} from "./collisionDetection";
 
 interface Event {
   name: string;
@@ -29,7 +34,16 @@ export function BalanceSlider({ balances, events, eventValues, setEventValues }:
     setEventValues(prev => {
       const updated = { ...prev };
       relevantEvents.forEach((event, index) => {
-        updated[event.name] = newValues[index];
+        const requestedTime = newValues[index];
+        const validTime = getNextValidPosition(
+          event.name,
+          requestedTime,
+          event,
+          balance,
+          events,
+          prev
+        );
+        updated[event.name] = validTime;
       });
       return updated;
     });
@@ -87,24 +101,62 @@ export function BalanceSlider({ balances, events, eventValues, setEventValues }:
               <Label>{balance}</Label>
               <SliderOutput />
               <SliderTrack>
-                {relevantEvents.map((event, index) => (
-                  <div key={`req-container-${event.name}`} className="thumb-container">
-                    <div 
-                      className="thumb-label" 
-                      style={{
-                        left: `${(currentValues[index] / 5) * 100}%`,
-                      }}
-                    >
-                      {event.name}
-                    </div>
-                    <SliderThumb 
-                      key={`req-${event.name}`}
-                      index={index}
-                      aria-labelledby={`event-label-${event.name}`}
-                      aria-describedby={`req-desc-${event.name}-${balance}`}
-                    />
-                  </div>
+                {/* Consumption period indicators */}
+                {getConsumptionPeriods(balance, events, eventValues).map((period, index) => (
+                  <div
+                    key={`consumption-${period.eventName}-${index}`}
+                    className="consumption-period"
+                    style={{
+                      position: 'absolute',
+                      left: `${(period.start / 5) * 100}%`,
+                      width: `${((period.end - period.start) / 5) * 100}%`,
+                      height: '100%',
+                      backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                      border: '1px solid rgba(255, 0, 0, 0.4)',
+                      pointerEvents: 'none',
+                      zIndex: 1
+                    }}
+                    title={`${period.eventName} consumes ${balance} from ${period.start} to ${period.end}`}
+                  />
                 ))}
+                
+                {relevantEvents.map((event, index) => {
+                  const currentTime = currentValues[index];
+                  const isValidPosition = isValidEventPlacement(
+                    event.name,
+                    currentTime,
+                    event,
+                    balance,
+                    events,
+                    eventValues
+                  );
+                  
+                  return (
+                    <div key={`req-container-${event.name}`} className="thumb-container">
+                      <div 
+                        className="thumb-label" 
+                        style={{
+                          left: `${(currentTime / 5) * 100}%`,
+                          color: isValidPosition ? 'black' : 'red',
+                          fontWeight: isValidPosition ? 'normal' : 'bold'
+                        }}
+                      >
+                        {event.name}
+                      </div>
+                      <SliderThumb 
+                        key={`req-${event.name}`}
+                        index={index}
+                        style={{
+                          backgroundColor: isValidPosition ? undefined : '#ff6b6b',
+                          border: isValidPosition ? undefined : '2px solid #ff0000'
+                        }}
+                        aria-labelledby={`event-label-${event.name}`}
+                        aria-describedby={`req-desc-${event.name}-${balance}`}
+                      />
+                    </div>
+                  );
+                })}
+                
                 {consumingEvents.map((event, index) => (
                   <SliderThumb 
                     key={`consume-${event.name}`}

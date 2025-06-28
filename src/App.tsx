@@ -16,6 +16,7 @@ import {
   getDefaultState,
   resetState,
 } from "./urlState";
+import { findValidPlacement } from "./collisionDetection";
 import "./App.css";
 
 interface Event {
@@ -69,13 +70,42 @@ function App() {
   const addEvent = (e: React.FormEvent) => {
     e.preventDefault();
     if (newEvent.name.trim()) {
-      setEvents([
-        ...events,
-        {
-          ...newEvent,
-          name: newEvent.name.trim(),
-        },
-      ]);
+      const newEventObj = {
+        ...newEvent,
+        name: newEvent.name.trim(),
+      };
+      
+      // Find valid starting positions for this event on all relevant balances
+      const newEventValues = { ...eventValues };
+      
+      // Get all balances this event interacts with (requires or consumes)
+      const relevantBalances = [...new Set([...newEvent.req, ...newEvent.consumes])];
+      
+      // Find the earliest valid position that works for all relevant balances
+      let validStartTime = 0;
+      for (const balance of relevantBalances) {
+        const validPosition = findValidPlacement(
+          newEventObj.name,
+          newEventObj,
+          balance,
+          events,
+          eventValues,
+          validStartTime
+        );
+        
+        if (validPosition !== null) {
+          validStartTime = Math.max(validStartTime, validPosition);
+        } else {
+          // If no valid position found, try to place at the end
+          validStartTime = 5 - (newEvent.consumes.includes(balance) ? newEvent.duration : 0);
+        }
+      }
+      
+      // Set the initial event value to the valid start time
+      newEventValues[newEventObj.name] = Math.max(0, Math.min(validStartTime, 5));
+      
+      setEvents([...events, newEventObj]);
+      setEventValues(newEventValues);
       setNewEvent({
         name: "",
         req: [],
