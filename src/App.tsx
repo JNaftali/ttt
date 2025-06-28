@@ -1,16 +1,21 @@
 import { useState, useEffect } from "react";
-import { 
-  Button, 
-  TextField, 
-  Label, 
-  Input, 
+import {
+  Button,
+  TextField,
+  Label,
+  Input,
   Form,
   NumberField,
   CheckboxGroup,
-  Checkbox
+  Checkbox,
 } from "react-aria-components";
 import { BalanceSlider } from "./BalanceSlider";
-import { deserializeState, updateURL, getDefaultState, resetState } from "./urlState";
+import {
+  deserializeState,
+  updateURL,
+  getDefaultState,
+  resetState,
+} from "./urlState";
 import "./App.css";
 
 interface Event {
@@ -50,7 +55,7 @@ function App() {
     name: "",
     req: [] as string[],
     consumes: [] as string[],
-    duration: 0
+    duration: 0,
   });
 
   const addBalance = (e: React.FormEvent) => {
@@ -64,27 +69,37 @@ function App() {
   const addEvent = (e: React.FormEvent) => {
     e.preventDefault();
     if (newEvent.name.trim()) {
-      setEvents([...events, {
-        ...newEvent,
-        name: newEvent.name.trim()
-      }]);
+      setEvents([
+        ...events,
+        {
+          ...newEvent,
+          name: newEvent.name.trim(),
+        },
+      ]);
       setNewEvent({
         name: "",
         req: [],
         consumes: [],
-        duration: 0
+        duration: 0,
       });
     }
   };
 
   return (
     <>
-      <div style={{ display: "flex", gap: "2rem", marginBottom: "2rem", alignItems: "flex-start" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "2rem",
+          marginBottom: "2rem",
+          alignItems: "flex-start",
+        }}
+      >
         <Form onSubmit={addBalance}>
           <TextField>
             <Label>Add Balance</Label>
-            <Input 
-              value={newBalance} 
+            <Input
+              value={newBalance}
               onChange={(e) => setNewBalance(e.target.value)}
               placeholder="Enter balance name"
             />
@@ -95,39 +110,47 @@ function App() {
         <Form onSubmit={addEvent}>
           <TextField>
             <Label>Event Name</Label>
-            <Input 
-              value={newEvent.name} 
-              onChange={(e) => setNewEvent({...newEvent, name: e.target.value})}
+            <Input
+              value={newEvent.name}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, name: e.target.value })
+              }
               placeholder="Enter event name"
             />
           </TextField>
 
-          <NumberField 
-            value={newEvent.duration} 
-            onChange={(value) => setNewEvent({...newEvent, duration: value || 0})}
+          <NumberField
+            value={newEvent.duration}
+            onChange={(value) =>
+              setNewEvent({ ...newEvent, duration: value || 0 })
+            }
           >
             <Label>Duration</Label>
             <Input />
           </NumberField>
 
-          <CheckboxGroup 
+          <CheckboxGroup
             value={newEvent.req}
-            onChange={(selected) => setNewEvent({...newEvent, req: selected as string[]})}
+            onChange={(selected) =>
+              setNewEvent({ ...newEvent, req: selected as string[] })
+            }
           >
             <Label>Requirements</Label>
-            {balances.map(balance => (
+            {balances.map((balance) => (
               <Checkbox key={balance} value={balance}>
                 {balance}
               </Checkbox>
             ))}
           </CheckboxGroup>
 
-          <CheckboxGroup 
+          <CheckboxGroup
             value={newEvent.consumes}
-            onChange={(selected) => setNewEvent({...newEvent, consumes: selected as string[]})}
+            onChange={(selected) =>
+              setNewEvent({ ...newEvent, consumes: selected as string[] })
+            }
           >
             <Label>Consumes</Label>
-            {balances.map(balance => (
+            {balances.map((balance) => (
               <Checkbox key={balance} value={balance}>
                 {balance}
               </Checkbox>
@@ -142,9 +165,9 @@ function App() {
         </div>
       </div>
 
-      <BalanceSlider 
-        balances={balances} 
-        events={events} 
+      <BalanceSlider
+        balances={balances}
+        events={events}
         eventValues={eventValues}
         setEventValues={setEventValues}
       />

@@ -13,19 +13,19 @@ interface AppState {
 
 export function serializeState(state: AppState): string {
   const params = new URLSearchParams();
-  params.set('state', btoa(JSON.stringify(state)));
+  params.set("state", btoa(JSON.stringify(state)));
   return params.toString();
 }
 
 export function deserializeState(): AppState | null {
   try {
     const params = new URLSearchParams(window.location.search);
-    const stateParam = params.get('state');
+    const stateParam = params.get("state");
     if (!stateParam) return null;
-    
+
     return JSON.parse(atob(stateParam));
   } catch (error) {
-    console.warn('Failed to deserialize state from URL:', error);
+    console.warn("Failed to deserialize state from URL:", error);
     return null;
   }
 }
@@ -33,7 +33,7 @@ export function deserializeState(): AppState | null {
 export function updateURL(state: AppState): void {
   const url = new URL(window.location.href);
   url.search = serializeState(state);
-  window.history.replaceState({}, '', url.toString());
+  window.history.replaceState({}, "", url.toString());
 }
 
 export function getDefaultState(): AppState {
@@ -47,12 +47,12 @@ export function getDefaultState(): AppState {
         duration: 1.5,
       },
     ],
-    eventValues: {}
+    eventValues: {},
   };
 }
 
 export function resetState(): void {
   const url = new URL(window.location.href);
-  url.search = '';
+  url.search = "";
   window.location.href = url.toString();
 }
