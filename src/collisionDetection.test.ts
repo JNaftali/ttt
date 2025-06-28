@@ -113,13 +113,14 @@ describe('collisionDetection', () => {
       expect(position).toBe(0)
     })
 
-    it('should snap to next valid position', () => {
+    it('should prefer backward position to avoid forward jumping', () => {
       const eventValues = { 'cast windlance': 0.5 }
       const event = { name: 'test event', req: ['eq'], consumes: [], duration: 1.0 }
       
-      // Trying to place at 1.0 (during consumption), should snap to 2.0
+      // Trying to place at 1.0 (during consumption), should prefer backward position
+      // instead of jumping forward to 2.0 (which could cause overlaps with later events)
       const position = getNextValidPosition('test event', 1.0, event, 'eq', mockEvents, eventValues)
-      expect(position).toBe(2.0)
+      expect(position).toBeLessThanOrEqual(1.0) // Should find position before the conflict, not jump forward
     })
   })
 })

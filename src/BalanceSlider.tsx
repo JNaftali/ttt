@@ -92,10 +92,9 @@ export function BalanceSlider({ balances, events, eventValues, setEventValues }:
         const consumingEvents = events.filter(event => event.consumes.includes(balance));
         
         const currentValues = relevantEvents.map(event => eventValues[event.name] || 0);
-        const consumptionValues = consumingEvents.map(event => (eventValues[event.name] || 0) + event.duration);
         
-        // Combine both requirement and consumption values for the slider
-        const allValues = [...currentValues, ...consumptionValues];
+        // Only use requirement values for the slider - consumption thumbs are visual indicators only
+        const allValues = currentValues;
         
         return (
           <div key={balance}>
@@ -104,7 +103,7 @@ export function BalanceSlider({ balances, events, eventValues, setEventValues }:
               maxValue={5} 
               step={0.01} 
               value={allValues}
-              onChange={(newValues) => handleSliderChange(balance, newValues.slice(0, currentValues.length))}
+              onChange={(newValues) => handleSliderChange(balance, newValues)}
             >
               <Label>{balance}</Label>
               <SliderOutput />
@@ -165,15 +164,32 @@ export function BalanceSlider({ balances, events, eventValues, setEventValues }:
                   );
                 })}
                 
-                {consumingEvents.map((event, index) => (
-                  <SliderThumb 
-                    key={`consume-${event.name}`}
-                    index={currentValues.length + index}
-                    style={{ opacity: 0.6, backgroundColor: 'red' }}
-                    aria-labelledby={`event-label-${event.name}`}
-                    aria-describedby={`consume-desc-${event.name}-${balance}`}
-                  />
-                ))}
+                {/* Consumption thumbs as visual indicators only - not interactive */}
+                {consumingEvents.map((event) => {
+                  const consumptionEndTime = (eventValues[event.name] || 0) + event.duration;
+                  
+                  return (
+                    <div
+                      key={`consume-indicator-${event.name}`}
+                      className="consumption-thumb"
+                      style={{
+                        position: 'absolute',
+                        left: `${(consumptionEndTime / 5) * 100}%`,
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        backgroundColor: 'red',
+                        opacity: 0.6,
+                        pointerEvents: 'none',
+                        border: '2px solid darkred',
+                        zIndex: 2
+                      }}
+                      title={`${event.name} consumption ends at ${consumptionEndTime.toFixed(2)}`}
+                    />
+                  );
+                })}
               </SliderTrack>
             </Slider>
           </div>

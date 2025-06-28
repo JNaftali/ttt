@@ -115,6 +115,46 @@ export function validateAllEventPlacements(
   };
 }
 
+export function isValidEventPlacementAllBalances(
+  eventName: string,
+  newStartTime: number,
+  event: Event,
+  events: Event[],
+  eventValues: Record<string, number>
+): boolean {
+  // Get all balances this event affects
+  const affectedBalances = [...new Set([...event.req, ...event.consumes])];
+  
+  // Check if the placement is valid for ALL affected balances
+  for (const balance of affectedBalances) {
+    if (!isValidEventPlacement(eventName, newStartTime, event, balance, events, eventValues)) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+export function findValidPlacementAllBalances(
+  eventName: string,
+  event: Event,
+  events: Event[],
+  eventValues: Record<string, number>,
+  minTime: number = 0,
+  maxTime: number = 5
+): number | null {
+  const step = 0.01;
+  const maxDuration = Math.max(...event.consumes.map(() => event.duration), 0);
+  
+  for (let time = minTime; time <= maxTime - maxDuration; time += step) {
+    if (isValidEventPlacementAllBalances(eventName, time, event, events, eventValues)) {
+      return Math.round(time * 100) / 100;
+    }
+  }
+  
+  return null;
+}
+
 export function getNextValidPosition(
   eventName: string,
   currentTime: number,
@@ -123,20 +163,43 @@ export function getNextValidPosition(
   events: Event[],
   eventValues: Record<string, number>
 ): number {
-  // If current position is valid, return it
-  if (isValidEventPlacement(eventName, currentTime, event, balance, events, eventValues)) {
+  // If current position is valid for all balances, return it
+  if (isValidEventPlacementAllBalances(eventName, currentTime, event, events, eventValues)) {
     return currentTime;
   }
   
-  // Find the next valid position
-  const validPosition = findValidPlacement(eventName, event, balance, events, eventValues, currentTime);
+  // First, try to find the closest valid position by searching both directions
+  // from the current position
+  const step = 0.01;
+  const maxDistance = 1.0; // Maximum distance to search in each direction
   
-  if (validPosition !== null) {
-    return validPosition;
+  for (let distance = step; distance <= maxDistance; distance += step) {
+    // Try backward first (prefer not jumping forward)
+    const backwardTime = currentTime - distance;
+    if (backwardTime >= 0 && isValidEventPlacementAllBalances(eventName, backwardTime, event, events, eventValues)) {
+      return Math.round(backwardTime * 100) / 100;
+    }
+    
+    // Then try forward
+    const forwardTime = currentTime + distance;
+    if (forwardTime <= 5 && isValidEventPlacementAllBalances(eventName, forwardTime, event, events, eventValues)) {
+      return Math.round(forwardTime * 100) / 100;
+    }
   }
   
-  // If no valid position found forward, try backward from current position
-  const backwardPosition = findValidPlacement(eventName, event, balance, events, eventValues, 0, currentTime);
+  // If no nearby position found, try the full backward range
+  const backwardPosition = findValidPlacementAllBalances(
+    eventName, event, events, eventValues, 0, currentTime
+  );
   
-  return backwardPosition !== null ? backwardPosition : currentTime;
+  if (backwardPosition !== null) {
+    return backwardPosition;
+  }
+  
+  // As last resort, try forward (but this should be rare)
+  const forwardPosition = findValidPlacementAllBalances(
+    eventName, event, events, eventValues, currentTime, 5
+  );
+  
+  return forwardPosition !== null ? forwardPosition : currentTime;
 }
