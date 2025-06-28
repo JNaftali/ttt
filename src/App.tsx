@@ -68,6 +68,28 @@ function App() {
     }
   };
 
+  const removeBalance = (balanceToRemove: string) => {
+    // Remove the balance
+    setBalances(balances.filter(balance => balance !== balanceToRemove));
+    
+    // Remove or clean up events that depend on this balance
+    const updatedEvents = events.filter(event => {
+      // Remove events that require or consume this balance
+      return !event.req.includes(balanceToRemove) && !event.consumes.includes(balanceToRemove);
+    });
+    
+    // Clean up event values for removed events
+    const updatedEventValues = { ...eventValues };
+    events.forEach(event => {
+      if (event.req.includes(balanceToRemove) || event.consumes.includes(balanceToRemove)) {
+        delete updatedEventValues[event.name];
+      }
+    });
+    
+    setEvents(updatedEvents);
+    setEventValues(updatedEventValues);
+  };
+
   const addEvent = (e: React.FormEvent) => {
     e.preventDefault();
     if (newEvent.name.trim()) {
@@ -202,6 +224,7 @@ function App() {
         events={events}
         eventValues={eventValues}
         setEventValues={setEventValues}
+        removeBalance={removeBalance}
       />
     </>
   );

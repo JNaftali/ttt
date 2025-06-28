@@ -5,6 +5,7 @@ import {
   SliderOutput,
   SliderThumb,
   SliderTrack,
+  Button,
 } from "react-aria-components";
 import {
   getNextValidPosition,
@@ -24,6 +25,7 @@ interface BalanceSliderProps {
   events: Event[];
   eventValues: Record<string, number>;
   setEventValues: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  removeBalance: (balance: string) => void;
 }
 
 export function BalanceSlider({
@@ -31,6 +33,7 @@ export function BalanceSlider({
   events,
   eventValues,
   setEventValues,
+  removeBalance,
 }: BalanceSliderProps) {
   const handleSliderChange = useCallback(
     (balance: string, newValues: number[]) => {
@@ -63,7 +66,7 @@ export function BalanceSlider({
         return hasChanges ? updated : prev;
       });
     },
-    [events]
+    [events, setEventValues]
   );
 
   return (
@@ -124,113 +127,137 @@ export function BalanceSlider({
         const allValues = currentValues;
 
         return (
-          <div key={balance}>
-            <Slider
-              minValue={0}
-              maxValue={5}
-              step={0.01}
-              value={allValues}
-              onChange={(newValues) => handleSliderChange(balance, newValues)}
+          <div
+            key={balance}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              marginBottom: "1rem",
+            }}
+          >
+            <Button
+              onPress={() => removeBalance(balance)}
+              style={{
+                backgroundColor: "#ff6b6b",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "4px 8px",
+                fontSize: "12px",
+                cursor: "pointer",
+              }}
             >
-              <Label>{balance}</Label>
-              <SliderOutput style={{ fontSize: 0 }} />
-              <SliderTrack>
-                {/* Consumption period indicators */}
-                {getConsumptionPeriods(balance, events, eventValues).map(
-                  (period, index) => (
-                    <div
-                      key={`consumption-${period.eventName}-${index}`}
-                      className="consumption-period"
-                      style={{
-                        position: "absolute",
-                        left: `${(period.start / 5) * 100}%`,
-                        width: `${((period.end - period.start) / 5) * 100}%`,
-                        height: "100%",
-                        backgroundColor: "rgba(255, 0, 0, 0.2)",
-                        border: "1px solid rgba(255, 0, 0, 0.4)",
-                        pointerEvents: "none",
-                        zIndex: 1,
-                      }}
-                      title={`${period.eventName} consumes ${balance} from ${period.start} to ${period.end}`}
-                    />
-                  )
-                )}
-
-                {relevantEvents.map((event, index) => {
-                  const currentTime = currentValues[index];
-                  const isValidPosition = isValidEventPlacement(
-                    event.name,
-                    currentTime,
-                    event,
-                    balance,
-                    events,
-                    eventValues
-                  );
-
-                  return (
-                    <div
-                      key={`req-container-${event.name}`}
-                      className="thumb-container"
-                    >
+              Remove
+            </Button>
+            <div style={{ flex: 1 }}>
+              <Slider
+                minValue={0}
+                maxValue={5}
+                step={0.01}
+                value={allValues}
+                onChange={(newValues) => handleSliderChange(balance, newValues)}
+              >
+                <Label>{balance}</Label>
+                <SliderOutput style={{ fontSize: 0 }} />
+                <SliderTrack>
+                  {/* Consumption period indicators */}
+                  {getConsumptionPeriods(balance, events, eventValues).map(
+                    (period, index) => (
                       <div
-                        className="thumb-label"
+                        key={`consumption-${period.eventName}-${index}`}
+                        className="consumption-period"
                         style={{
-                          left: `${(currentTime / 5) * 100}%`,
-                          color: isValidPosition ? "black" : "red",
-                          fontWeight: isValidPosition ? "normal" : "bold",
+                          position: "absolute",
+                          left: `${(period.start / 5) * 100}%`,
+                          width: `${((period.end - period.start) / 5) * 100}%`,
+                          height: "100%",
+                          backgroundColor: "rgba(255, 0, 0, 0.2)",
+                          border: "1px solid rgba(255, 0, 0, 0.4)",
+                          pointerEvents: "none",
+                          zIndex: 1,
                         }}
-                      >
-                        {event.name}
-                      </div>
-                      <SliderThumb
-                        key={`req-${event.name}`}
-                        index={index}
-                        style={{
-                          backgroundColor: isValidPosition
-                            ? undefined
-                            : "#ff6b6b",
-                          border: isValidPosition
-                            ? undefined
-                            : "2px solid #ff0000",
-                        }}
-                        aria-labelledby={`event-label-${event.name}`}
-                        aria-describedby={`req-desc-${event.name}-${balance}`}
+                        title={`${period.eventName} consumes ${balance} from ${period.start} to ${period.end}`}
                       />
-                    </div>
-                  );
-                })}
+                    )
+                  )}
 
-                {/* Consumption thumbs as visual indicators only - not interactive */}
-                {consumingEvents.map((event) => {
-                  const consumptionEndTime =
-                    (eventValues[event.name] || 0) + event.duration;
+                  {relevantEvents.map((event, index) => {
+                    const currentTime = currentValues[index];
+                    const isValidPosition = isValidEventPlacement(
+                      event.name,
+                      currentTime,
+                      event,
+                      balance,
+                      events,
+                      eventValues
+                    );
 
-                  return (
-                    <div
-                      key={`consume-indicator-${event.name}`}
-                      className="consumption-thumb"
-                      style={{
-                        position: "absolute",
-                        left: `${(consumptionEndTime / 5) * 100}%`,
-                        top: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: "12px",
-                        height: "12px",
-                        borderRadius: "50%",
-                        backgroundColor: "red",
-                        opacity: 0.6,
-                        pointerEvents: "none",
-                        border: "2px solid darkred",
-                        zIndex: 2,
-                      }}
-                      title={`${
-                        event.name
-                      } consumption ends at ${consumptionEndTime.toFixed(2)}`}
-                    />
-                  );
-                })}
-              </SliderTrack>
-            </Slider>
+                    return (
+                      <div
+                        key={`req-container-${event.name}`}
+                        className="thumb-container"
+                      >
+                        <div
+                          className="thumb-label"
+                          style={{
+                            left: `${(currentTime / 5) * 100}%`,
+                            color: isValidPosition ? "black" : "red",
+                            fontWeight: isValidPosition ? "normal" : "bold",
+                          }}
+                        >
+                          {event.name}
+                        </div>
+                        <SliderThumb
+                          key={`req-${event.name}`}
+                          index={index}
+                          style={{
+                            backgroundColor: isValidPosition
+                              ? undefined
+                              : "#ff6b6b",
+                            border: isValidPosition
+                              ? undefined
+                              : "2px solid #ff0000",
+                          }}
+                          aria-labelledby={`event-label-${event.name}`}
+                          aria-describedby={`req-desc-${event.name}-${balance}`}
+                        />
+                      </div>
+                    );
+                  })}
+
+                  {/* Consumption thumbs as visual indicators only - not interactive */}
+                  {consumingEvents.map((event) => {
+                    const consumptionEndTime =
+                      (eventValues[event.name] || 0) + event.duration;
+
+                    return (
+                      <div
+                        key={`consume-indicator-${event.name}`}
+                        className="consumption-thumb"
+                        style={{
+                          position: "absolute",
+                          left: `${(consumptionEndTime / 5) * 100}%`,
+                          top: "50%",
+                          transform: "translate(-50%, -50%)",
+                          width: "12px",
+                          height: "12px",
+                          borderRadius: "50%",
+                          backgroundColor: "red",
+                          opacity: 0.6,
+                          pointerEvents: "none",
+                          border: "2px solid darkred",
+                          zIndex: 2,
+                        }}
+                        title={`${
+                          event.name
+                        } consumption ends at ${consumptionEndTime.toFixed(2)}`}
+                      />
+                    );
+                  })}
+                </SliderTrack>
+              </Slider>
+            </div>
           </div>
         );
       })}

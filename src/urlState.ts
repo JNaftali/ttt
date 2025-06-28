@@ -38,7 +38,7 @@ export function updateURL(state: AppState): void {
   if (updateURLTimeout) {
     clearTimeout(updateURLTimeout);
   }
-  
+
   // Schedule the update with a small delay
   updateURLTimeout = setTimeout(() => {
     const url = new URL(window.location.href);
@@ -54,7 +54,7 @@ export function updateURLImmediate(state: AppState): void {
     clearTimeout(updateURLTimeout);
     updateURLTimeout = null;
   }
-  
+
   const url = new URL(window.location.href);
   url.search = serializeState(state);
   window.history.replaceState({}, "", url.toString());
@@ -81,7 +81,7 @@ export function resetState(): void {
     clearTimeout(updateURLTimeout);
     updateURLTimeout = null;
   }
-  
+
   const url = new URL(window.location.href);
   url.search = "";
   window.location.href = url.toString();
