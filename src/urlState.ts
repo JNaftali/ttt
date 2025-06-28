@@ -50,3 +50,9 @@ export function getDefaultState(): AppState {
     eventValues: {}
   };
 }
+
+export function resetState(): void {
+  const url = new URL(window.location.href);
+  url.search = '';
+  window.location.href = url.toString();
+}

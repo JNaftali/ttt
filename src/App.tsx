@@ -10,7 +10,7 @@ import {
   Checkbox
 } from "react-aria-components";
 import { BalanceSlider } from "./BalanceSlider";
-import { deserializeState, updateURL, getDefaultState } from "./urlState";
+import { deserializeState, updateURL, getDefaultState, resetState } from "./urlState";
 import "./App.css";
 
 interface Event {
@@ -79,7 +79,7 @@ function App() {
 
   return (
     <>
-      <div style={{ display: "flex", gap: "2rem", marginBottom: "2rem" }}>
+      <div style={{ display: "flex", gap: "2rem", marginBottom: "2rem", alignItems: "flex-start" }}>
         <Form onSubmit={addBalance}>
           <TextField>
             <Label>Add Balance</Label>
@@ -136,6 +136,10 @@ function App() {
 
           <Button type="submit">Add Event</Button>
         </Form>
+
+        <div>
+          <Button onPress={resetState}>Reset</Button>
+        </div>
       </div>
 
       <BalanceSlider 
