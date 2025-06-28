@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Button, 
   TextField, 
@@ -10,6 +10,7 @@ import {
   Checkbox
 } from "react-aria-components";
 import { BalanceSlider } from "./BalanceSlider";
+import { deserializeState, updateURL, getDefaultState } from "./urlState";
 import "./App.css";
 
 interface Event {
@@ -20,15 +21,29 @@ interface Event {
 }
 
 function App() {
-  const [balances, setBalances] = useState<string[]>(["eq", "bal", "pill", "salve", "pipe"]);
-  const [events, setEvents] = useState<Event[]>([
-    {
-      name: "cast windlance",
-      req: ["eq", "bal"],
-      consumes: ["eq"],
-      duration: 1.5,
-    },
-  ]);
+  const [balances, setBalances] = useState<string[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventValues, setEventValues] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const urlState = deserializeState();
+    if (urlState) {
+      setBalances(urlState.balances);
+      setEvents(urlState.events);
+      setEventValues(urlState.eventValues);
+    } else {
+      const defaultState = getDefaultState();
+      setBalances(defaultState.balances);
+      setEvents(defaultState.events);
+      setEventValues(defaultState.eventValues);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (balances.length > 0 || events.length > 0) {
+      updateURL({ balances, events, eventValues });
+    }
+  }, [balances, events, eventValues]);
 
   const [newBalance, setNewBalance] = useState("");
   const [newEvent, setNewEvent] = useState({
@@ -123,7 +138,12 @@ function App() {
         </Form>
       </div>
 
-      <BalanceSlider balances={balances} events={events} />
+      <BalanceSlider 
+        balances={balances} 
+        events={events} 
+        eventValues={eventValues}
+        setEventValues={setEventValues}
+      />
     </>
   );
 }

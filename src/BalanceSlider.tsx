@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import {
   Label,
   Slider,
@@ -17,10 +17,11 @@ interface Event {
 interface BalanceSliderProps {
   balances: string[];
   events: Event[];
+  eventValues: Record<string, number>;
+  setEventValues: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }
 
-export function BalanceSlider({ balances, events }: BalanceSliderProps) {
-  const [eventValues, setEventValues] = useState<Record<string, number>>({});
+export function BalanceSlider({ balances, events, eventValues, setEventValues }: BalanceSliderProps) {
 
   const handleSliderChange = (balance: string, newValues: number[]) => {
     const relevantEvents = events.filter(event => event.req.includes(balance));
