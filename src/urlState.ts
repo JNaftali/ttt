@@ -30,7 +30,31 @@ export function deserializeState(): AppState | null {
   }
 }
 
+// Debounce URL updates to prevent "Too many calls to Location or History APIs"
+let updateURLTimeout: number | null = null;
+
 export function updateURL(state: AppState): void {
+  // Clear any pending update
+  if (updateURLTimeout) {
+    clearTimeout(updateURLTimeout);
+  }
+  
+  // Schedule the update with a small delay
+  updateURLTimeout = setTimeout(() => {
+    const url = new URL(window.location.href);
+    url.search = serializeState(state);
+    window.history.replaceState({}, "", url.toString());
+    updateURLTimeout = null;
+  }, 100); // 100ms debounce
+}
+
+export function updateURLImmediate(state: AppState): void {
+  // Cancel any pending debounced update
+  if (updateURLTimeout) {
+    clearTimeout(updateURLTimeout);
+    updateURLTimeout = null;
+  }
+  
   const url = new URL(window.location.href);
   url.search = serializeState(state);
   window.history.replaceState({}, "", url.toString());
@@ -52,7 +76,20 @@ export function getDefaultState(): AppState {
 }
 
 export function resetState(): void {
+  // Clear any pending URL update before navigating
+  if (updateURLTimeout) {
+    clearTimeout(updateURLTimeout);
+    updateURLTimeout = null;
+  }
+  
   const url = new URL(window.location.href);
   url.search = "";
   window.location.href = url.toString();
+}
+
+export function clearPendingURLUpdate(): void {
+  if (updateURLTimeout) {
+    clearTimeout(updateURLTimeout);
+    updateURLTimeout = null;
+  }
 }

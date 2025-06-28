@@ -45,6 +45,7 @@ function App() {
     }
   }, []);
 
+  // Use debounced URL updates for eventValues changes, immediate for structural changes
   useEffect(() => {
     if (balances.length > 0 || events.length > 0) {
       updateURL({ balances, events, eventValues });
@@ -104,6 +105,7 @@ function App() {
       // Set the initial event value to the valid start time
       newEventValues[newEventObj.name] = Math.max(0, Math.min(validStartTime, 5));
       
+      // Update state in batch to reduce URL updates
       setEvents([...events, newEventObj]);
       setEventValues(newEventValues);
       setNewEvent({

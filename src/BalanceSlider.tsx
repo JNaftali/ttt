@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Label,
   Slider,
@@ -28,11 +28,13 @@ interface BalanceSliderProps {
 
 export function BalanceSlider({ balances, events, eventValues, setEventValues }: BalanceSliderProps) {
 
-  const handleSliderChange = (balance: string, newValues: number[]) => {
+  const handleSliderChange = useCallback((balance: string, newValues: number[]) => {
     const relevantEvents = events.filter(event => event.req.includes(balance));
     
     setEventValues(prev => {
       const updated = { ...prev };
+      let hasChanges = false;
+      
       relevantEvents.forEach((event, index) => {
         const requestedTime = newValues[index];
         const validTime = getNextValidPosition(
@@ -43,11 +45,17 @@ export function BalanceSlider({ balances, events, eventValues, setEventValues }:
           events,
           prev
         );
-        updated[event.name] = validTime;
+        
+        // Only update if the value actually changed
+        if (Math.abs((prev[event.name] || 0) - validTime) > 0.001) {
+          updated[event.name] = validTime;
+          hasChanges = true;
+        }
       });
-      return updated;
+      
+      return hasChanges ? updated : prev;
     });
-  };
+  }, [events]);
 
   return (
     <div>

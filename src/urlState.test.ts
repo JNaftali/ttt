@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { serializeState, deserializeState, updateURL, getDefaultState } from './urlState'
+import { serializeState, deserializeState, updateURL, updateURLImmediate, getDefaultState } from './urlState'
 
 describe('urlState utilities', () => {
   const mockState = {
@@ -101,10 +101,16 @@ describe('urlState utilities', () => {
   })
 
   describe('updateURL', () => {
-    it('should update browser URL with serialized state', () => {
+    it('should debounce and update browser URL with serialized state', async () => {
       const replaceStateSpy = vi.spyOn(window.history, 'replaceState')
       
       updateURL(mockState)
+      
+      // Should not be called immediately (debounced)
+      expect(replaceStateSpy).not.toHaveBeenCalled()
+      
+      // Wait for debounce
+      await new Promise(resolve => setTimeout(resolve, 150))
       
       expect(replaceStateSpy).toHaveBeenCalledWith(
         {},
@@ -121,15 +127,40 @@ describe('urlState utilities', () => {
       expect(decoded).toEqual(mockState)
     })
 
-    it('should preserve existing URL path and hash', () => {
+    it('should preserve existing URL path and hash', async () => {
       window.location.href = 'http://localhost:3000/path#hash'
       const replaceStateSpy = vi.spyOn(window.history, 'replaceState')
       
       updateURL(mockState)
       
+      // Wait for debounce
+      await new Promise(resolve => setTimeout(resolve, 150))
+      
       const [, , url] = replaceStateSpy.mock.calls[0]
       expect(url).toContain('/path')
       expect(url).toContain('#hash')
+    })
+  })
+
+  describe('updateURLImmediate', () => {
+    it('should immediately update browser URL with serialized state', () => {
+      const replaceStateSpy = vi.spyOn(window.history, 'replaceState')
+      
+      updateURLImmediate(mockState)
+      
+      expect(replaceStateSpy).toHaveBeenCalledWith(
+        {},
+        '',
+        expect.stringContaining('state=')
+      )
+      
+      const [, , url] = replaceStateSpy.mock.calls[0]
+      const urlObj = new URL(url)
+      const stateParam = urlObj.searchParams.get('state')
+      
+      expect(stateParam).toBeTruthy()
+      const decoded = JSON.parse(atob(stateParam!))
+      expect(decoded).toEqual(mockState)
     })
   })
 
