@@ -9,6 +9,7 @@ interface AppState {
   balances: string[];
   events: Event[];
   eventValues: Record<string, number>;
+  timePeriod?: number;
 }
 
 export function serializeState(state: AppState): string {

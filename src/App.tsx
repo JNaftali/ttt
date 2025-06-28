@@ -30,6 +30,7 @@ function App() {
   const [balances, setBalances] = useState<string[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [eventValues, setEventValues] = useState<Record<string, number>>({});
+  const [timePeriod, setTimePeriod] = useState<number>(5);
 
   useEffect(() => {
     const urlState = deserializeState();
@@ -37,6 +38,9 @@ function App() {
       setBalances(urlState.balances);
       setEvents(urlState.events);
       setEventValues(urlState.eventValues);
+      if (urlState.timePeriod) {
+        setTimePeriod(urlState.timePeriod);
+      }
     } else {
       const defaultState = getDefaultState();
       setBalances(defaultState.balances);
@@ -48,9 +52,9 @@ function App() {
   // Use debounced URL updates for eventValues changes, immediate for structural changes
   useEffect(() => {
     if (balances.length > 0 || events.length > 0) {
-      updateURL({ balances, events, eventValues });
+      updateURL({ balances, events, eventValues, timePeriod });
     }
-  }, [balances, events, eventValues]);
+  }, [balances, events, eventValues, timePeriod]);
 
   const [newBalance, setNewBalance] = useState("");
   const [newEvent, setNewEvent] = useState({
@@ -113,19 +117,20 @@ function App() {
           balance,
           events,
           eventValues,
-          validStartTime
+          validStartTime,
+          timePeriod
         );
         
         if (validPosition !== null) {
           validStartTime = Math.max(validStartTime, validPosition);
         } else {
           // If no valid position found, try to place at the end
-          validStartTime = 5 - (newEvent.consumes.includes(balance) ? newEvent.duration : 0);
+          validStartTime = timePeriod - (newEvent.consumes.includes(balance) ? newEvent.duration : 0);
         }
       }
       
       // Set the initial event value to the valid start time
-      newEventValues[newEventObj.name] = Math.max(0, Math.min(validStartTime, 5));
+      newEventValues[newEventObj.name] = Math.max(0, Math.min(validStartTime, timePeriod));
       
       // Update state in batch to reduce URL updates
       setEvents([...events, newEventObj]);
@@ -215,6 +220,16 @@ function App() {
         </Form>
 
         <div>
+          <NumberField
+            value={timePeriod}
+            onChange={(value) => setTimePeriod(value || 5)}
+            minValue={1}
+            maxValue={60}
+            step={1}
+          >
+            <Label>Time Period (seconds)</Label>
+            <Input />
+          </NumberField>
           <Button onPress={resetState}>Reset</Button>
         </div>
       </div>
@@ -225,6 +240,7 @@ function App() {
         eventValues={eventValues}
         setEventValues={setEventValues}
         removeBalance={removeBalance}
+        timePeriod={timePeriod}
       />
     </>
   );

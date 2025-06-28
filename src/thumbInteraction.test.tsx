@@ -25,6 +25,7 @@ const mockEvents = [
 
 describe('BalanceSlider - Thumb Interaction', () => {
   const mockSetEventValues = vi.fn()
+  const mockRemoveBalance = vi.fn()
   const defaultProps = {
     balances: ['eq', 'bal', 'pill', 'pipe'],
     events: mockEvents,
@@ -33,7 +34,9 @@ describe('BalanceSlider - Thumb Interaction', () => {
       'drink health': 2.5,
       'smoke pipe': 0.5
     },
-    setEventValues: mockSetEventValues
+    setEventValues: mockSetEventValues,
+    removeBalance: mockRemoveBalance,
+    timePeriod: 5
   }
 
   beforeEach(() => {

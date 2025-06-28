@@ -26,6 +26,7 @@ interface BalanceSliderProps {
   eventValues: Record<string, number>;
   setEventValues: React.Dispatch<React.SetStateAction<Record<string, number>>>;
   removeBalance: (balance: string) => void;
+  timePeriod: number;
 }
 
 export function BalanceSlider({
@@ -34,6 +35,7 @@ export function BalanceSlider({
   eventValues,
   setEventValues,
   removeBalance,
+  timePeriod,
 }: BalanceSliderProps) {
   const handleSliderChange = useCallback(
     (balance: string, newValues: number[]) => {
@@ -150,10 +152,10 @@ export function BalanceSlider({
             >
               Remove
             </Button>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, position: "relative" }}>
               <Slider
                 minValue={0}
-                maxValue={5}
+                maxValue={timePeriod}
                 step={0.01}
                 value={allValues}
                 onChange={(newValues) => handleSliderChange(balance, newValues)}
@@ -161,6 +163,52 @@ export function BalanceSlider({
                 <Label>{balance}</Label>
                 <SliderOutput style={{ fontSize: 0 }} />
                 <SliderTrack>
+                  {/* Time labels every 5 seconds */}
+                  {Array.from({ length: Math.floor(timePeriod / 5) + 1 }, (_, i) => {
+                    const time = i * 5;
+                    if (time <= timePeriod) {
+                      return (
+                        <div
+                          key={`label-${time}`}
+                          style={{
+                            position: "absolute",
+                            left: `${(time / timePeriod) * 100}%`,
+                            top: "-25px",
+                            transform: "translateX(-50%)",
+                            fontSize: "11px",
+                            color: "#666",
+                            pointerEvents: "none",
+                            zIndex: 10,
+                          }}
+                        >
+                          {time}s
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                  
+                  {/* Tick marks at 1-second intervals */}
+                  {Array.from({ length: timePeriod + 1 }, (_, i) => {
+                    const isMajorTick = i % 5 === 0;
+                    return (
+                      <div
+                        key={`tick-${i}`}
+                        style={{
+                          position: "absolute",
+                          left: `${(i / timePeriod) * 100}%`,
+                          top: "0",
+                          width: isMajorTick ? "3px" : "1px",
+                          height: "100%",
+                          backgroundColor: isMajorTick ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.3)",
+                          pointerEvents: "none",
+                          zIndex: 0,
+                          transform: isMajorTick ? "translateX(-1.5px)" : "translateX(-0.5px)",
+                        }}
+                      />
+                    );
+                  })}
+                  
                   {/* Consumption period indicators */}
                   {getConsumptionPeriods(balance, events, eventValues).map(
                     (period, index) => (
@@ -169,8 +217,8 @@ export function BalanceSlider({
                         className="consumption-period"
                         style={{
                           position: "absolute",
-                          left: `${(period.start / 5) * 100}%`,
-                          width: `${((period.end - period.start) / 5) * 100}%`,
+                          left: `${(period.start / timePeriod) * 100}%`,
+                          width: `${((period.end - period.start) / timePeriod) * 100}%`,
                           height: "100%",
                           backgroundColor: "rgba(255, 0, 0, 0.2)",
                           border: "1px solid rgba(255, 0, 0, 0.4)",
@@ -201,7 +249,7 @@ export function BalanceSlider({
                         <div
                           className="thumb-label"
                           style={{
-                            left: `${(currentTime / 5) * 100}%`,
+                            left: `${(currentTime / timePeriod) * 100}%`,
                             color: isValidPosition ? "black" : "red",
                             fontWeight: isValidPosition ? "normal" : "bold",
                           }}
@@ -237,7 +285,7 @@ export function BalanceSlider({
                         className="consumption-thumb"
                         style={{
                           position: "absolute",
-                          left: `${(consumptionEndTime / 5) * 100}%`,
+                          left: `${(consumptionEndTime / timePeriod) * 100}%`,
                           top: "50%",
                           transform: "translate(-50%, -50%)",
                           width: "12px",
