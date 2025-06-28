@@ -99,13 +99,13 @@ describe("App - Slider Thumb Linking", () => {
 
     // Should have buttons (multiple instances due to multiple renders)
     expect(
-      screen.getAllByRole("button", { name: "Add Balance" }).length
+      screen.getAllByRole("button", { name: "Add Balance" }).length,
     ).toBeGreaterThan(0);
     expect(
-      screen.getAllByRole("button", { name: "Add Event" }).length
+      screen.getAllByRole("button", { name: "Add Event" }).length,
     ).toBeGreaterThan(0);
     expect(
-      screen.getAllByRole("button", { name: "Reset" }).length
+      screen.getAllByRole("button", { name: "Reset" }).length,
     ).toBeGreaterThan(0);
   });
 

@@ -6,7 +6,8 @@
       "Bash(npm test:*)",
       "Bash(rm:*)",
       "Bash(npm run lint)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:react-spectrum.adobe.com)"
     ],
     "deny": []
   }

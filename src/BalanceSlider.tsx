@@ -40,7 +40,7 @@ export function BalanceSlider({
   const handleSliderChange = useCallback(
     (balance: string, newValues: number[]) => {
       const relevantEvents = events.filter((event) =>
-        event.req.includes(balance)
+        event.req.includes(balance),
       );
 
       setEventValues((prev) => {
@@ -53,9 +53,8 @@ export function BalanceSlider({
             event.name,
             requestedTime,
             event,
-            balance,
             events,
-            prev
+            prev,
           );
 
           // Only update if the value actually changed
@@ -68,7 +67,7 @@ export function BalanceSlider({
         return hasChanges ? updated : prev;
       });
     },
-    [events, setEventValues]
+    [events, setEventValues],
   );
 
   return (
@@ -85,10 +84,10 @@ export function BalanceSlider({
       {/* Description elements for thumbs */}
       {balances.map((balance) => {
         const relevantEvents = events.filter((event) =>
-          event.req.includes(balance)
+          event.req.includes(balance),
         );
         const consumingEvents = events.filter((event) =>
-          event.consumes.includes(balance)
+          event.consumes.includes(balance),
         );
 
         return (
@@ -115,14 +114,14 @@ export function BalanceSlider({
 
       {balances.map((balance) => {
         const relevantEvents = events.filter((event) =>
-          event.req.includes(balance)
+          event.req.includes(balance),
         );
         const consumingEvents = events.filter((event) =>
-          event.consumes.includes(balance)
+          event.consumes.includes(balance),
         );
 
         const currentValues = relevantEvents.map(
-          (event) => eventValues[event.name] || 0
+          (event) => eventValues[event.name] || 0,
         );
 
         // Only use requirement values for the slider - consumption thumbs are visual indicators only
@@ -164,30 +163,33 @@ export function BalanceSlider({
                 <SliderOutput style={{ fontSize: 0 }} />
                 <SliderTrack>
                   {/* Time labels every 5 seconds */}
-                  {Array.from({ length: Math.floor(timePeriod / 5) + 1 }, (_, i) => {
-                    const time = i * 5;
-                    if (time <= timePeriod) {
-                      return (
-                        <div
-                          key={`label-${time}`}
-                          style={{
-                            position: "absolute",
-                            left: `${(time / timePeriod) * 100}%`,
-                            top: "-25px",
-                            transform: "translateX(-50%)",
-                            fontSize: "11px",
-                            color: "#666",
-                            pointerEvents: "none",
-                            zIndex: 10,
-                          }}
-                        >
-                          {time}s
-                        </div>
-                      );
-                    }
-                    return null;
-                  })}
-                  
+                  {Array.from(
+                    { length: Math.floor(timePeriod / 5) + 1 },
+                    (_, i) => {
+                      const time = i * 5;
+                      if (time <= timePeriod) {
+                        return (
+                          <div
+                            key={`label-${time}`}
+                            style={{
+                              position: "absolute",
+                              left: `${(time / timePeriod) * 100}%`,
+                              top: "-25px",
+                              transform: "translateX(-50%)",
+                              fontSize: "11px",
+                              color: "#666",
+                              pointerEvents: "none",
+                              zIndex: 10,
+                            }}
+                          >
+                            {time}s
+                          </div>
+                        );
+                      }
+                      return null;
+                    },
+                  )}
+
                   {/* Tick marks at 1-second intervals */}
                   {Array.from({ length: timePeriod + 1 }, (_, i) => {
                     const isMajorTick = i % 5 === 0;
@@ -200,15 +202,19 @@ export function BalanceSlider({
                           top: "0",
                           width: isMajorTick ? "3px" : "1px",
                           height: "100%",
-                          backgroundColor: isMajorTick ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.3)",
+                          backgroundColor: isMajorTick
+                            ? "rgba(0, 0, 0, 0.6)"
+                            : "rgba(0, 0, 0, 0.3)",
                           pointerEvents: "none",
                           zIndex: 0,
-                          transform: isMajorTick ? "translateX(-1.5px)" : "translateX(-0.5px)",
+                          transform: isMajorTick
+                            ? "translateX(-1.5px)"
+                            : "translateX(-0.5px)",
                         }}
                       />
                     );
                   })}
-                  
+
                   {/* Consumption period indicators */}
                   {getConsumptionPeriods(balance, events, eventValues).map(
                     (period, index) => (
@@ -227,7 +233,7 @@ export function BalanceSlider({
                         }}
                         title={`${period.eventName} consumes ${balance} from ${period.start} to ${period.end}`}
                       />
-                    )
+                    ),
                   )}
 
                   {relevantEvents.map((event, index) => {
@@ -238,7 +244,7 @@ export function BalanceSlider({
                       event,
                       balance,
                       events,
-                      eventValues
+                      eventValues,
                     );
 
                     return (

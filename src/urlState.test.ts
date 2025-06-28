@@ -124,7 +124,7 @@ describe("urlState utilities", () => {
       expect(replaceStateSpy).toHaveBeenCalledWith(
         {},
         "",
-        expect.stringContaining("state=")
+        expect.stringContaining("state="),
       );
 
       const [, , url] = replaceStateSpy.mock.calls[0];
@@ -160,7 +160,7 @@ describe("urlState utilities", () => {
       expect(replaceStateSpy).toHaveBeenCalledWith(
         {},
         "",
-        expect.stringContaining("state=")
+        expect.stringContaining("state="),
       );
 
       const [, , url] = replaceStateSpy.mock.calls[0];

@@ -10,6 +10,7 @@ import {
   Checkbox,
 } from "react-aria-components";
 import { BalanceSlider } from "./BalanceSlider";
+import { EventList } from "./EventList";
 import {
   deserializeState,
   updateURL,
@@ -74,22 +75,28 @@ function App() {
 
   const removeBalance = (balanceToRemove: string) => {
     // Remove the balance
-    setBalances(balances.filter(balance => balance !== balanceToRemove));
-    
+    setBalances(balances.filter((balance) => balance !== balanceToRemove));
+
     // Remove or clean up events that depend on this balance
-    const updatedEvents = events.filter(event => {
+    const updatedEvents = events.filter((event) => {
       // Remove events that require or consume this balance
-      return !event.req.includes(balanceToRemove) && !event.consumes.includes(balanceToRemove);
+      return (
+        !event.req.includes(balanceToRemove) &&
+        !event.consumes.includes(balanceToRemove)
+      );
     });
-    
+
     // Clean up event values for removed events
     const updatedEventValues = { ...eventValues };
-    events.forEach(event => {
-      if (event.req.includes(balanceToRemove) || event.consumes.includes(balanceToRemove)) {
+    events.forEach((event) => {
+      if (
+        event.req.includes(balanceToRemove) ||
+        event.consumes.includes(balanceToRemove)
+      ) {
         delete updatedEventValues[event.name];
       }
     });
-    
+
     setEvents(updatedEvents);
     setEventValues(updatedEventValues);
   };
@@ -101,13 +108,15 @@ function App() {
         ...newEvent,
         name: newEvent.name.trim(),
       };
-      
+
       // Find valid starting positions for this event on all relevant balances
       const newEventValues = { ...eventValues };
-      
+
       // Get all balances this event interacts with (requires or consumes)
-      const relevantBalances = [...new Set([...newEvent.req, ...newEvent.consumes])];
-      
+      const relevantBalances = [
+        ...new Set([...newEvent.req, ...newEvent.consumes]),
+      ];
+
       // Find the earliest valid position that works for all relevant balances
       let validStartTime = 0;
       for (const balance of relevantBalances) {
@@ -118,20 +127,25 @@ function App() {
           events,
           eventValues,
           validStartTime,
-          timePeriod
+          timePeriod,
         );
-        
+
         if (validPosition !== null) {
           validStartTime = Math.max(validStartTime, validPosition);
         } else {
           // If no valid position found, try to place at the end
-          validStartTime = timePeriod - (newEvent.consumes.includes(balance) ? newEvent.duration : 0);
+          validStartTime =
+            timePeriod -
+            (newEvent.consumes.includes(balance) ? newEvent.duration : 0);
         }
       }
-      
+
       // Set the initial event value to the valid start time
-      newEventValues[newEventObj.name] = Math.max(0, Math.min(validStartTime, timePeriod));
-      
+      newEventValues[newEventObj.name] = Math.max(
+        0,
+        Math.min(validStartTime, timePeriod),
+      );
+
       // Update state in batch to reduce URL updates
       setEvents([...events, newEventObj]);
       setEventValues(newEventValues);
@@ -142,6 +156,17 @@ function App() {
         duration: 0,
       });
     }
+  };
+
+  const handleEventReorder = (reorderedEvents: Event[]) => {
+    setEvents(reorderedEvents);
+  };
+
+  const handleRemoveEvent = (eventName: string) => {
+    setEvents(events.filter((event) => event.name !== eventName));
+    const updatedEventValues = { ...eventValues };
+    delete updatedEventValues[eventName];
+    setEventValues(updatedEventValues);
   };
 
   return (
@@ -233,6 +258,12 @@ function App() {
           <Button onPress={resetState}>Reset</Button>
         </div>
       </div>
+
+      <EventList
+        events={events}
+        onReorder={handleEventReorder}
+        onRemoveEvent={handleRemoveEvent}
+      />
 
       <BalanceSlider
         balances={balances}
